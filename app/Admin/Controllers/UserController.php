@@ -3,6 +3,7 @@
 namespace App\Admin\Controllers;
 
 use App\User;
+use App\Models\Role;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -38,10 +39,15 @@ class UserController extends AdminController
         $grid->column('profile.age');
         $grid->column('profile.gender');
 
-        //or
-        // $grid->profile()->age();
-        // $grid->profile()->gender();
-        //--Relation--
+        $grid->roles()->display(function ($roles) {
+
+            $roles = array_map(function ($role) {
+                return "<span class='label label-success'>{$role['name']}</span>";
+            }, $roles);
+        
+            return join('&nbsp;', $roles);
+        });
+        
 
         return $grid;
     }
@@ -75,11 +81,16 @@ class UserController extends AdminController
     protected function form()
     {
         $form = new Form(new User);
-
         $form->text('name', __('Name'));
         $form->text('profile.age');
         $form->text('profile.gender');
         $form->email('email', __('Email'));
+      //  $form->text('user_roles.name', __('Role'));
+        $roles = Role::all();
+        $options = $roles->mapWithKeys(function ($item) {
+            return [$item['id'] => $item['name']];
+        });
+        $form->select('role_user.role_id', __('Role'))->options($options);
         $form->password('password', __('Password'));
         $form->text('remember_token', __('Remember token'));
 
